@@ -51,15 +51,19 @@ for j in lst_teams:
     count += df[(df['away'] == j) & (df['season'] == choose_season)]['away_score'].sum()
     lst_goals.append(count)
 
+st.write(lst_teams[7])
+st.write(lst_goals[7])
+
 options = {
     "xAxis": {
         "type": "category",
         "data": lst_teams,
     },
     "yAxis": {"type": "value"},
-    "series": [{"data": lst_goals, "type": "bar"}],}
+    "series": [{"data": lst_goals, "type": "bar"}],
+}
 
-if st.button('Takım kendi evinde kaç gol attı?'):
+if st.button('Getir'):
     st_echarts(options=options, height="500px")
 
 
