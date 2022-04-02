@@ -1,3 +1,5 @@
+import string
+from streamlit_echarts import st_echarts
 from cProfile import label
 from re import A
 import streamlit as st
@@ -5,6 +7,7 @@ import pandas as pd
 import numpy as np
 
 #MIN/MAX GOALS/CARDS IN A GAME/STADIUM
+#----------------------------------------------------------------
 def get_match_id(param_1, param_2):
     search_attribute = label_fact_dict[param_2]
     column = imple_1_3[search_attribute]
@@ -102,3 +105,56 @@ imple_1_3 = pd.merge(imple_1_1, imple_1_2, on='id',how='left')
 asd = get_match_id(param_1, param_2)
 
 st.write(asd[1])
+
+#SEZONA GÖRE TAKIMLARIN GOL SAYILARI BAR CHART
+#------------------------------------------------------------------------------------
+
+goals = get_all()[3]
+st.write(goals)
+
+lst_teams = np.unique(df[['home','away']]).tolist()
+lst_goals = []
+
+choose_season = st.selectbox(
+    'Hangi Sezon?',
+    df['season'].unique().tolist())
+
+df = df[df['season'] == choose_season]
+for j in lst_teams: 
+    lst_goals.append(df[df['away'] == j]['away_score'].sum() + df[df['home'] == j]['home_score'].sum())
+
+options1 = {
+    "xAxis": {
+        "type": "category",
+        "data": lst_teams,
+    },
+    "yAxis": {"type": "value"},
+    "series": [{"data": lst_goals, "type": "bar"}],
+}
+
+if st.button('Getir'):
+    st_echarts(options=options1, height="500px")
+
+
+#------------------------------------------------------------------------------------
+
+row3_1, row3_spacer1, row3_2, row3_spacer2 = st.columns((1.6, .2, 1.6, .2))
+with row3_1:
+    option_team = st.selectbox(
+        'Hangi takım?',
+        goals['home'].unique().tolist())
+with row3_2:
+    option_season = st.selectbox(
+        'Hangi takım?',
+        goals['season'].unique().tolist())
+
+
+count_goals = 0
+for i in range(len(goals)):
+    if goals['season'][i] == option_season and goals['home'][i] == option_team and goals['variable'][i][0] == 'h' and type(goals['goal'][i]) == str:
+        count_goals += 1
+    elif goals['season'][i] == option_season and goals['away'][i] == option_team and goals['variable'][i][0] == 'a' and type(goals['goal'][i]) == str:
+        count_goals += 1
+
+
+     
