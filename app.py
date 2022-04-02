@@ -123,7 +123,6 @@ df = df[df['season'] == choose_season]
 for j in lst_teams: 
     lst_goals.append(df[df['away'] == j]['away_score'].sum() + df[df['home'] == j]['home_score'].sum())
 
-
 options1 = {
     "xAxis": {
         "type": "category",
