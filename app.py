@@ -123,14 +123,21 @@ df = df[df['season'] == choose_season]
 for j in lst_teams: 
     lst_goals.append(df[df['away'] == j]['away_score'].sum() + df[df['home'] == j]['home_score'].sum())
 
+lst_teams = pd.Series(lst_teams, index=lst_goals)
+lst_teams = lst_teams.reset_index()
+
+st.write(lst_teams)
+
+
 options1 = {
     "xAxis": {
         "type": "category",
-        "data": lst_teams,
+        "data": lst_teams[lst_teams.columns[1]].values.tolist(),
     },
     "yAxis": {"type": "value"},
-    "series": [{"data": lst_goals, "type": "bar"}],
+    "series": [{"data": lst_teams[lst_teams.columns[0]].values.tolist(), "type": "bar"}],
 }
+
 
 if st.button('Getir'):
     st_echarts(options=options1, height="500px")
@@ -155,6 +162,3 @@ for i in range(len(goals)):
         count_goals += 1
     elif goals['season'][i] == option_season and goals['away'][i] == option_team and goals['variable'][i][0] == 'a' and type(goals['goal'][i]) == str:
         count_goals += 1
-
-
-     
