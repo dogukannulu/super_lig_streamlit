@@ -251,11 +251,9 @@ from PIL import ImageFont
 from PIL import ImageDraw 
 
 img = Image.open("saha.png")    #this is the image we want to add text to
-team_img = Image.open("home.png")
-away_img = Image.open("away.png")
+team_img = Image.open("saha3.png")
 draw = ImageDraw.Draw(img)  # Create a drawing object that is used to draw on the new image.
 draw_team = ImageDraw.Draw(team_img)
-draw_away = ImageDraw.Draw(away_img)
 font_score = ImageFont.truetype('BankGthd.ttf', encoding="utf-8", size=120)  # Create the font object\
 font_info = ImageFont.truetype('Roboto-Regular.ttf', encoding="utf-8", size=30) 
 font_team = ImageFont.truetype('BankGthd.ttf', encoding="utf-8", size=30)  # Create the font object\
@@ -287,7 +285,7 @@ w_home, h_home = draw_team.textsize(text_home, font=font_info)
 text_away = f"""{data[(data['id'] == matchId)]['away'].values[0]}
           """
 text_away = textwrap.fill(text=text_away, width=15)
-w_away, h_away = draw_away.textsize(text_away, font=font_info)
+w_away, h_away = draw_team.textsize(text_away, font=font_info)
 
 
 # drawing text size
@@ -314,12 +312,11 @@ draw_team.text(((W_T - w_home)/2, (H_T - h_home)/2), text_home, fill ="white", f
 team_img = team_img.rotate(270, PIL.Image.NEAREST, expand = 1)
 
 W_A, H_A = (320, 70)
-draw_away.text(((W_A - w_away)/2, (H_A - h_away)/2), text_away, fill ="white", font = font_team,
+draw_team.text(((W_A - w_away)/2, (H_A - h_away)/2), text_away, fill ="white", font = font_team,
           align ='center') 
-away_img = away_img.rotate(90, PIL.Image.NEAREST, expand = 1)
+team_img = team_img.rotate(90, PIL.Image.NEAREST, expand = 1)
 
-Image.Image.paste(img, team_img, (45, 192))
-Image.Image.paste(img, away_img, (896, 192))
+Image.Image.paste(img, team_img, (45, 190))
 width, height = img.size
 basewidth = 250
 wpercent = (basewidth/float(img.size[0]))
@@ -332,9 +329,8 @@ row3_1, row3_2, row3_3 = st.columns([1, 3, 1])
 
 with row3_1:
   st.write("")
-  st.markdown(f"<h3 style='text-align: center;'>İlk 11</h3>", unsafe_allow_html=True)
+  st.markdown(f"<h3 style='text-align: center;'>{data[(data['id'] == matchId)]['home'].values[0]}</h3>", unsafe_allow_html=True)
   home_startings = startings[(startings['id'] == matchId)].loc[startings["variable"].str.startswith("h")][['starting_player']].sort_values(by='starting_player', ascending=False)
-  home_subs = subs[(subs['id'] == matchId)].loc[subs["variable"].str.startswith("h")][['sub_player']].sort_values(by='sub_player', ascending=False)
   # CSS to inject contained in a string
   hide_table_row_index = """
               <style>
@@ -348,8 +344,6 @@ with row3_1:
   # Inject CSS with Markdown
   st.markdown(hide_table_row_index, unsafe_allow_html=True)
   st.table(home_startings)
-  st.markdown(f"<h3 style='text-align: center;'>Yedekler</h3>", unsafe_allow_html=True)
-  st.table(home_subs)
 
 with row3_2:
   st.image(img, use_column_width=True)   # Display the image. 
@@ -358,9 +352,8 @@ with row3_2:
 
 with row3_3:
   st.write("")
-  st.markdown(f"<h3 style='text-align: center;'>İlk 11</h3>", unsafe_allow_html=True)
+  st.markdown(f"<h3 style='text-align: center;'>{data[(data['id'] == matchId)]['away'].values[0]}</h3>", unsafe_allow_html=True)
   away_startings = startings[(startings['id'] == matchId)].loc[startings["variable"].str.startswith("a")][['starting_player']].sort_values(by='starting_player', ascending=False)
-  away_subs = subs[(subs['id'] == matchId)].loc[subs["variable"].str.startswith("a")][['sub_player']].sort_values(by='sub_player', ascending=False)
   # CSS to inject contained in a string
   hide_table_row_index = """
               <style>
@@ -373,9 +366,7 @@ with row3_3:
 
   # Inject CSS with Markdown
   st.markdown(hide_table_row_index, unsafe_allow_html=True)
-  st.table(away_startings) 
-  st.markdown(f"<h3 style='text-align: center;'>Yedekler</h3>", unsafe_allow_html=True)
-  st.table(away_subs)
+  st.table(away_startings)  
 
 st.write(matchId)
 
