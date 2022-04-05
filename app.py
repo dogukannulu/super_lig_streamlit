@@ -106,121 +106,6 @@ imple_1_3 = pd.merge(imple_1_1, imple_1_2, on='id',how='left')
 match_id = get_match_id(param_1, param_2)[0]
 
 
-#SEZONA GÖRE TAKIMLARIN GOL SAYILARI BAR CHART
-#------------------------------------------------------------------------------------
-
-goals = get_all()[3]
-
-lst_teams = np.unique(df[['home','away']]).tolist()
-lst_goals = []
-
-choose_season = st.selectbox(
-    'Hangi Sezon?',
-    df['season'].unique().tolist())
-
-df = df[df['season'] == choose_season]
-for j in lst_teams: 
-    lst_goals.append(df[df['away'] == j]['away_score'].sum() + df[df['home'] == j]['home_score'].sum())
-
-lst_teams = pd.Series(lst_teams, index=lst_goals)
-lst_teams = lst_teams.reset_index().sort_values(by='index', ascending=False).iloc[:10]
-
-
-
-options1 = {
-    "xAxis": {
-        "type": "category",
-        "data": lst_teams[lst_teams.columns[1]].values.tolist(),
-        "axisLabel": {
-        "interval": 0,
-        "rotate": 30
-      }
-
-    },
-    "yAxis": {"type": "value"},
-    "dataZoom": [
-    {
-      "type": "inside"
-    }
-  ],
-    "series": [{"data": lst_teams[lst_teams.columns[0]].values.tolist(), "type": "bar"}],
-}
-
-
-if st.button('Getir'):
-    st_echarts(options=options1, height="500px")
-
-
-#Pie Chart Olusturma
-
-pie_data = []
-
-for i in range(0, len(lst_teams)):
-    pie_data.append({'value': lst_teams[lst_teams.columns[0]].values.tolist()[i], 'name': lst_teams[lst_teams.columns[1]].values.tolist()[i]})
-
-
-
-option = {
-  "backgroundColor": "#2c343c",
-  "title": {
-    "text": "Customized Pie",
-    "left": "center",
-    "top": 20,
-    "textStyle": {
-      "color": "#ccc"
-    }
-  },
-  "tooltip": {
-    "trigger": "item"
-  },
-  "visualMap": {
-    "show": "false",
-    "min": 0,
-    "max": 100,
-    "inRange": {
-      "colorLightness": [
-        0,
-        1
-      ]
-    }
-  },
-  "series": [
-    {
-      "name": "",
-      "type": "pie",
-      "radius": "55%",
-      "center": [
-        "50%",
-        "50%"
-      ],
-      "data": pie_data,
-      "roseType": "radius",
-      "label": {
-        "color": "rgba(255, 255, 255, 0.3)"
-      },
-      "labelLine": {
-        "lineStyle": {
-          "color": "rgba(255, 255, 255, 0.3)"
-        },
-        "smooth": 0.2,
-        "length": 10,
-        "length2": 20
-      },
-      "itemStyle": {
-        "color": "#c23531",
-        "shadowBlur": 200,
-        "shadowColor": "rgba(0, 0, 0, 0.5)"
-      },
-      "animationType": "scale",
-      "animationEasing": "elasticOut"
-    }
-  ]
-}
-
-st_echarts(
-    options=option, height="600px",
-)
-
 dataframes = [df, startings, subs]
 df_final = functools.reduce(lambda left,right: pd.merge(left,right,on='id'), dataframes)
 df_final = df_final.groupby(['id', 'season','exhibition_x','starting_player']).size().reset_index(name='total_goals')
@@ -228,22 +113,24 @@ df_final = df_final.groupby(['id', 'season','exhibition_x','starting_player']).s
 
 
 data = get_all()[0]
-st.write(startings)
+st.write(data)
 
 row3_1, row3_2, row3_3, row3_4, row3_5 = st.columns([1, .1, 1, .1, 1])
 
 with row3_1:
-  season = st.selectbox("", data['season'].unique().tolist())
+  season = st.selectbox("", data['season'].sort_values().unique().tolist())
+
+data_season = data[(data['season'] == season)]
 
 with row3_3:
-  hafta = st.selectbox("", data['hafta'].unique().tolist())
+  hafta = st.selectbox("", data['hafta'].sort_values().unique().tolist())
 
-data = data[(data['season'] == season) & (data['hafta'] == hafta)]
+data_hafta = data_season[(data_season['season'] == season) & (data_season['hafta'] == hafta)]
 
 with row3_5:
-  karsilasma = st.selectbox("", data['exhibition'].unique().tolist())
+  karsilasma = st.selectbox("", data_hafta['exhibition'].unique().tolist())
 
-matchId = data[(data['season'] == season) & (data['hafta'] == hafta) & (data['exhibition'] == karsilasma)]['id'].values[0]
+matchId = data_hafta[(data_hafta['season'] == season) & (data_hafta['hafta'] == hafta) & (data_hafta['exhibition'] == karsilasma)]['id'].values[0]
 
 import PIL
 from PIL import Image
@@ -328,6 +215,12 @@ img2 = img.resize((basewidth,hsize), Image.ANTIALIAS)
 img2.save("saha2.png")
 
 
+goals = get_all()[3]
+home_goals = goals[(goals['id'] == matchId) & (goals['variable'].str.startswith("h"))][['goal_player', 'goal_minute']].sort_values(by='goal_minute', ascending=True)
+home_goals = home_goals.dropna()
+away_goals = goals[(goals['id'] == matchId) & (goals['variable'].str.startswith("a"))][['goal_player', 'goal_minute']].sort_values(by='goal_minute', ascending=True)
+away_goals = away_goals.dropna()
+
 row3_1, row3_2, row3_3 = st.columns([1, 3, 1])
 
 with row3_1:
@@ -350,11 +243,88 @@ with row3_1:
   st.table(home_startings)
   st.markdown(f"<h3 style='text-align: center;'>Yedekler</h3>", unsafe_allow_html=True)
   st.table(home_subs)
+  if len(home_goals) > 0:
+    st.markdown(f"<h3 style='text-align: center;'>Gol(ler)</h3>", unsafe_allow_html=True)
+    st.table(home_goals)
+
+
 
 with row3_2:
   st.image(img, use_column_width=True)   # Display the image. 
+  st.write("")
+  lst_teams = np.unique(data[['home','away']]).tolist()
+  lst_goals = []
 
+  data_x = data[data['season'] == season]
+  for j in lst_teams: 
+      lst_goals.append(data_season[data_season['away'] == j]['away_score'].sum() + data_season[data_season['home'] == j]['home_score'].sum())
 
+  lst_teams = pd.Series(lst_teams, index=lst_goals)
+  lst_teams = lst_teams.reset_index().sort_values(by='index', ascending=False).iloc[:10]
+
+  pie_data = []
+  for i in range(0, len(data_hafta)):
+      pie_data.append({'value': lst_teams[lst_teams.columns[0]].values.tolist()[i], 'name': lst_teams[lst_teams.columns[1]].values.tolist()[i]})
+
+  option = {
+    "backgroundColor": "#1A1F24",
+    "title": {
+      "text": f"{season} Sezonu En Çok Gol Atan 10 Takım",
+      "left": "center",
+      "top": 20,
+      "textStyle": {
+        "color": "#4FFFB0"
+      }
+    },
+    "tooltip": {
+      "trigger": "item"
+    },
+    "visualMap": {
+      "show": "false",
+      "min": 0,
+      "max": 100,
+      "inRange": {
+        "colorLightness": [
+          0,
+          1
+        ]
+      }
+    },
+    "series": [
+      {
+        "type": "pie",
+        "radius": "55%",
+        "center": [
+          "50%",
+          "50%"
+        ],
+        "data": pie_data,
+        "roseType": "radius",
+        "label": {
+          "color": "#ffffff"
+        },
+        "labelLine": {
+          "lineStyle": {
+            "color": "rgba(255, 255, 255, 0.3)"
+          },
+          "smooth": 0.2,
+          "length": 10,
+          "length2": 20
+        },
+        "itemStyle": {
+          "color": "#072609",
+          "shadowBlur": 200,
+          "shadowColor": "rgba(0, 0, 0, 0.5)"
+        },
+        "animationType": "scale",
+        "animationEasing": "elasticOut"
+      }
+    ]
+  }
+
+  st_echarts(
+      options=option, height="600px",
+  )
 
 with row3_3:
   st.write("")
@@ -376,6 +346,9 @@ with row3_3:
   st.table(away_startings) 
   st.markdown(f"<h3 style='text-align: center;'>Yedekler</h3>", unsafe_allow_html=True)
   st.table(away_subs)
+  if len(away_goals) > 0:
+    st.markdown(f"<h3 style='text-align: center;'>Gol(ler)</h3>", unsafe_allow_html=True)
+    st.table(away_goals)
 
 st.write(matchId)
 
