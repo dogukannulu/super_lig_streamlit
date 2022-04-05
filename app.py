@@ -4,6 +4,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import functools
+st.set_page_config(layout="wide",page_title='Süper Lig', page_icon=':ball:')
+
 
 #MIN/MAX GOALS/CARDS IN A GAME/STADIUM
 #----------------------------------------------------------------
