@@ -1,10 +1,9 @@
-import string
+from tkinter import CENTER
 from streamlit_echarts import st_echarts
-from cProfile import label
-from re import A
 import streamlit as st
 import pandas as pd
 import numpy as np
+import functools
 
 #MIN/MAX GOALS/CARDS IN A GAME/STADIUM
 #----------------------------------------------------------------
@@ -51,10 +50,10 @@ get_all()
 
 df = get_all()[0]
 startings = get_all()[4]
+subs = get_all()[5]
 
 df['total_goals'] = df['home_score']+df['away_score']
 
-st.write(df)
 
 row6_1, row6_spacer2 = st.columns((7.1, .2))
 with row6_1:
@@ -81,7 +80,6 @@ with row2_4:
 
 
 cards = get_all()[1]
-st.write(cards)
 #cool analiz
 
 row2_1, row2_spacer2, row2_2, row2_spacer3, row2_3   = st.columns((1.6, .2, 1.6, .2, 1.6))
@@ -101,16 +99,13 @@ imple_1_1 = imple_1.groupby(['id', 'exhibition_y','stadium']).size().reset_index
 imple_1_2 = imple_1.groupby(['id','exhibition_y','stadium'])['total_goals'].mean().reset_index(name='total_goals')
 
 imple_1_3 = pd.merge(imple_1_1, imple_1_2, on='id',how='left')
+match_id = get_match_id(param_1, param_2)[0]
 
-asd = get_match_id(param_1, param_2)
-
-st.write(asd[1])
 
 #SEZONA GÖRE TAKIMLARIN GOL SAYILARI BAR CHART
 #------------------------------------------------------------------------------------
 
 goals = get_all()[3]
-st.write(goals)
 
 lst_teams = np.unique(df[['home','away']]).tolist()
 lst_goals = []
@@ -124,17 +119,26 @@ for j in lst_teams:
     lst_goals.append(df[df['away'] == j]['away_score'].sum() + df[df['home'] == j]['home_score'].sum())
 
 lst_teams = pd.Series(lst_teams, index=lst_goals)
-lst_teams = lst_teams.reset_index()
+lst_teams = lst_teams.reset_index().sort_values(by='index', ascending=False).iloc[:10]
 
-st.write(lst_teams)
 
 
 options1 = {
     "xAxis": {
         "type": "category",
         "data": lst_teams[lst_teams.columns[1]].values.tolist(),
+        "axisLabel": {
+        "interval": 0,
+        "rotate": 30
+      }
+
     },
     "yAxis": {"type": "value"},
+    "dataZoom": [
+    {
+      "type": "inside"
+    }
+  ],
     "series": [{"data": lst_teams[lst_teams.columns[0]].values.tolist(), "type": "bar"}],
 }
 
@@ -143,25 +147,196 @@ if st.button('Getir'):
     st_echarts(options=options1, height="500px")
 
 
-#------------------------------------------------------------------------------------
+#Pie Chart Olusturma
 
-row3_1, row3_spacer1, row3_2, row3_spacer2 = st.columns((1.6, .2, 1.6, .2))
+pie_data = []
+
+for i in range(0, len(lst_teams)):
+    pie_data.append({'value': lst_teams[lst_teams.columns[0]].values.tolist()[i], 'name': lst_teams[lst_teams.columns[1]].values.tolist()[i]})
+
+
+
+option = {
+  "backgroundColor": "#2c343c",
+  "title": {
+    "text": "Customized Pie",
+    "left": "center",
+    "top": 20,
+    "textStyle": {
+      "color": "#ccc"
+    }
+  },
+  "tooltip": {
+    "trigger": "item"
+  },
+  "visualMap": {
+    "show": "false",
+    "min": 0,
+    "max": 100,
+    "inRange": {
+      "colorLightness": [
+        0,
+        1
+      ]
+    }
+  },
+  "series": [
+    {
+      "name": "",
+      "type": "pie",
+      "radius": "55%",
+      "center": [
+        "50%",
+        "50%"
+      ],
+      "data": pie_data,
+      "roseType": "radius",
+      "label": {
+        "color": "rgba(255, 255, 255, 0.3)"
+      },
+      "labelLine": {
+        "lineStyle": {
+          "color": "rgba(255, 255, 255, 0.3)"
+        },
+        "smooth": 0.2,
+        "length": 10,
+        "length2": 20
+      },
+      "itemStyle": {
+        "color": "#c23531",
+        "shadowBlur": 200,
+        "shadowColor": "rgba(0, 0, 0, 0.5)"
+      },
+      "animationType": "scale",
+      "animationEasing": "elasticOut"
+    }
+  ]
+}
+
+st_echarts(
+    options=option, height="600px",
+)
+
+dataframes = [df, startings, subs]
+df_final = functools.reduce(lambda left,right: pd.merge(left,right,on='id'), dataframes)
+df_final = df_final.groupby(['id', 'season','exhibition_x','starting_player']).size().reset_index(name='total_goals')
+
+
+
+data = get_all()[0]
+st.write(startings)
+
+row3_1, row3_2, row3_3, row3_4, row3_5 = st.columns([1, .1, 1, .1, 1])
+
 with row3_1:
-    option_team = st.selectbox(
-        'Hangi takım?',
-        goals['home'].unique().tolist())
+  season = st.selectbox("", data['season'].unique().tolist())
+
+with row3_3:
+  hafta = st.selectbox("", data['hafta'].unique().tolist())
+
+data = data[(data['season'] == season) & (data['hafta'] == hafta)]
+
+with row3_5:
+  karsilasma = st.selectbox("", data['exhibition'].unique().tolist())
+
+matchId = data[(data['season'] == season) & (data['hafta'] == hafta) & (data['exhibition'] == karsilasma)]['id'].values[0]
+
+
+from PIL import Image
+from PIL import ImageFont
+from PIL import ImageDraw 
+
+img = Image.open("saha.png")    #this is the image we want to add text to
+draw = ImageDraw.Draw(img)  # Create a drawing object that is used to draw on the new image.
+font_score = ImageFont.truetype('BankGthd.ttf', encoding="utf-8", size=120)  # Create the font object\
+font_info = ImageFont.truetype('Roboto-Regular.ttf', encoding="utf-8", size=30) 
+
+
+text1 = f"""{data[(data['id'] == matchId)]['home_score'].values[0]}
+          """ 
+text2 = f"""{data[(data['id'] == matchId)]['away_score'].values[0]}
+          """ 
+text3 = f"""{data[(data['id'] == matchId)]['stadium'].values[0]}
+          """
+w_3, h_3 = draw.textsize(text3, font=font_info)
+text4 = f"""{data[(data['id'] == matchId)]['ref_main'].values[0]}
+          """  
+w_4, h_4 = draw.textsize(text4, font=font_info)
+text5 = f"""{data[(data['id'] == matchId)]['date'].values[0]}
+          """
+w_5, h_5 = draw.textsize(text5, font=font_info)
+text6 = f"""{data[(data['id'] == matchId)]['time'].values[0]}
+          """
+w_6, h_6 = draw.textsize(text6, font=font_info)
+
+# drawing text size
+draw.text((90, 50), text1, fill ="white", font = font_score, 
+          align ='center') 
+draw.text((530, 50), text2, fill ="white", font = font_score, 
+          align ='center') 
+W_3, H_3 = (1100, 1300)
+draw.text(((W_3 - w_3)/2, (H_3 - h_3)/2), text3, fill ="white", font = font_info, 
+          align ='center') 
+W_4, H_4 = (1100, 500)
+draw.text(((W_4 - w_4)/2, (H_4 - h_4)/2), text4, fill ="white", font = font_info, 
+          align ='center') 
+W_5, H_5 = (1100, 700)
+draw.text(((W_5 - w_5)/2, (H_5 - h_5)/2), text5, fill ="white", font = font_info, 
+          align ='center') 
+W_6, H_6 = (1090, 900)
+draw.text(((W_6 - w_6)/2, (H_6 - h_6)/2), text6, fill ="white", font = font_info, 
+          align ='center')
+ 
+width, height = img.size
+basewidth = 250
+wpercent = (basewidth/float(img.size[0]))
+hsize = int((float(img.size[1])*float(wpercent)))
+img2 = img.resize((basewidth,hsize), Image.ANTIALIAS)
+img2.save("saha2.png")
+
+
+row3_1, row3_2, row3_3 = st.columns([1, 3, 1])
+
+with row3_1:
+  st.write("")
+  st.markdown(f"<h3 style='text-align: center;'>{data[(data['id'] == matchId)]['home'].values[0]}</h3>", unsafe_allow_html=True)
+  home_startings = startings[(startings['id'] == matchId)].loc[startings["variable"].str.startswith("h")][['starting_player']].sort_values(by='starting_player', ascending=False)
+  # CSS to inject contained in a string
+  hide_table_row_index = """
+              <style>
+              tbody th {display:none}
+              th {display:none}
+              .blank {display:none}
+              tr:hover {background-color: #018749;}
+              </style>
+              """
+
+  # Inject CSS with Markdown
+  st.markdown(hide_table_row_index, unsafe_allow_html=True)
+  st.table(home_startings)
+
 with row3_2:
-    option_season = st.selectbox(
-        'Hangi takım?',
-        goals['season'].unique().tolist())
+  st.image(img, use_column_width=True)   # Display the image. 
 
 
-count_goals = 0
-for i in range(len(goals)):
-    if goals['season'][i] == option_season and goals['home'][i] == option_team and goals['variable'][i][0] == 'h' and type(goals['goal'][i]) == str:
-        count_goals += 1
-    elif goals['season'][i] == option_season and goals['away'][i] == option_team and goals['variable'][i][0] == 'a' and type(goals['goal'][i]) == str:
-        count_goals += 1
 
+with row3_3:
+  st.write("")
+  st.markdown(f"<h3 style='text-align: center;'>{data[(data['id'] == matchId)]['away'].values[0]}</h3>", unsafe_allow_html=True)
+  away_startings = startings[(startings['id'] == matchId)].loc[startings["variable"].str.startswith("a")][['starting_player']].sort_values(by='starting_player', ascending=False)
+  # CSS to inject contained in a string
+  hide_table_row_index = """
+              <style>
+              tbody th {display:none}
+              th {display:none}
+              .blank {display:none}
+              tr:hover {background-color: #018749;}
+              </style>
+              """
 
-     
+  # Inject CSS with Markdown
+  st.markdown(hide_table_row_index, unsafe_allow_html=True)
+  st.table(away_startings)  
+
+st.write(matchId)
+
