@@ -225,7 +225,9 @@ row3_1, row3_2, row3_3 = st.columns([1, 3, 1])
 
 with row3_1:
   st.write("")
-  st.markdown(f"<h3 style='text-align: center;'>İlk 11</h3>", unsafe_allow_html=True)
+  st.markdown("<h3 style='text-align: center;'>Teknik Direktör</h1>", unsafe_allow_html=True)
+  st.markdown(f"<h5 style='text-align: center;'>{data[data['id'] == matchId]['home_coach'].values[0]}</h1>", unsafe_allow_html=True)
+  st.markdown("<h3 style='text-align: center;'>İlk 11</h3>", unsafe_allow_html=True)
   home_startings = startings[(startings['id'] == matchId)].loc[startings["variable"].str.startswith("h")][['starting_player']].sort_values(by='starting_player', ascending=False)
   home_subs = subs[(subs['id'] == matchId)].loc[subs["variable"].str.startswith("h")][['sub_player']].sort_values(by='sub_player', ascending=False)
   # CSS to inject contained in a string
@@ -312,7 +314,7 @@ with row3_2:
           "length2": 20
         },
         "itemStyle": {
-          "color": "#072609",
+          "color": "#357C3C",
           "shadowBlur": 200,
           "shadowColor": "rgba(0, 0, 0, 0.5)"
         },
@@ -328,6 +330,8 @@ with row3_2:
 
 with row3_3:
   st.write("")
+  st.markdown("<h3 style='text-align: center;'>Teknik Direktör</h1>", unsafe_allow_html=True)
+  st.markdown(f"<h5 style='text-align: center;'>{data[data['id'] == matchId]['away_coach'].values[0]}</h1>", unsafe_allow_html=True)
   st.markdown(f"<h3 style='text-align: center;'>İlk 11</h3>", unsafe_allow_html=True)
   away_startings = startings[(startings['id'] == matchId)].loc[startings["variable"].str.startswith("a")][['starting_player']].sort_values(by='starting_player', ascending=False)
   away_subs = subs[(subs['id'] == matchId)].loc[subs["variable"].str.startswith("a")][['sub_player']].sort_values(by='sub_player', ascending=False)
