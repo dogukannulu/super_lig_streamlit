@@ -1,3 +1,12 @@
+<<<<<<< HEAD
+import string
+from streamlit_echarts import st_echarts
+from cProfile import label
+from re import A
+import streamlit as st
+import pandas as pd
+import numpy as np
+=======
 from tkinter import CENTER
 from streamlit_echarts import st_echarts
 import streamlit as st
@@ -8,6 +17,7 @@ import textwrap
 
 st.set_page_config(layout="wide",page_title='Süper Lig', page_icon=':ball:')
 
+>>>>>>> origin/main
 
 #MIN/MAX GOALS/CARDS IN A GAME/STADIUM
 #----------------------------------------------------------------
@@ -54,10 +64,17 @@ get_all()
 
 df = get_all()[0]
 startings = get_all()[4]
+<<<<<<< HEAD
+
+df['total_goals'] = df['home_score']+df['away_score']
+
+st.write(df)
+=======
 subs = get_all()[5]
 
 df['total_goals'] = df['home_score']+df['away_score']
 
+>>>>>>> origin/main
 
 row6_1, row6_spacer2 = st.columns((7.1, .2))
 with row6_1:
@@ -84,6 +101,10 @@ with row2_4:
 
 
 cards = get_all()[1]
+<<<<<<< HEAD
+st.write(cards)
+=======
+>>>>>>> origin/main
 #cool analiz
 
 row2_1, row2_spacer2, row2_2, row2_spacer3, row2_3   = st.columns((1.6, .2, 1.6, .2, 1.6))
@@ -103,6 +124,69 @@ imple_1_1 = imple_1.groupby(['id', 'exhibition_y','stadium']).size().reset_index
 imple_1_2 = imple_1.groupby(['id','exhibition_y','stadium'])['total_goals'].mean().reset_index(name='total_goals')
 
 imple_1_3 = pd.merge(imple_1_1, imple_1_2, on='id',how='left')
+<<<<<<< HEAD
+
+asd = get_match_id(param_1, param_2)
+
+st.write(asd[1])
+
+#SEZONA GÖRE TAKIMLARIN GOL SAYILARI BAR CHART
+#------------------------------------------------------------------------------------
+
+goals = get_all()[3]
+st.write(goals)
+
+lst_teams = np.unique(df[['home','away']]).tolist()
+lst_goals = []
+
+choose_season = st.selectbox(
+    'Hangi Sezon?',
+    df['season'].unique().tolist())
+
+df = df[df['season'] == choose_season]
+for j in lst_teams: 
+    lst_goals.append(df[df['away'] == j]['away_score'].sum() + df[df['home'] == j]['home_score'].sum())
+
+lst_teams = pd.Series(lst_teams, index=lst_goals)
+lst_teams = lst_teams.reset_index()
+
+st.write(lst_teams)
+
+
+options1 = {
+    "xAxis": {
+        "type": "category",
+        "data": lst_teams[lst_teams.columns[1]].values.tolist(),
+    },
+    "yAxis": {"type": "value"},
+    "series": [{"data": lst_teams[lst_teams.columns[0]].values.tolist(), "type": "bar"}],
+}
+
+
+if st.button('Getir'):
+    st_echarts(options=options1, height="500px")
+
+
+#------------------------------------------------------------------------------------
+
+row3_1, row3_spacer1, row3_2, row3_spacer2 = st.columns((1.6, .2, 1.6, .2))
+with row3_1:
+    option_team = st.selectbox(
+        'Hangi takım?',
+        goals['home'].unique().tolist())
+with row3_2:
+    option_season = st.selectbox(
+        'Hangi takım?',
+        goals['season'].unique().tolist())
+
+
+count_goals = 0
+for i in range(len(goals)):
+    if goals['season'][i] == option_season and goals['home'][i] == option_team and goals['variable'][i][0] == 'h' and type(goals['goal'][i]) == str:
+        count_goals += 1
+    elif goals['season'][i] == option_season and goals['away'][i] == option_team and goals['variable'][i][0] == 'a' and type(goals['goal'][i]) == str:
+        count_goals += 1
+=======
 match_id = get_match_id(param_1, param_2)[0]
 
 
@@ -356,3 +440,4 @@ with row3_3:
 
 st.write(matchId)
 
+>>>>>>> origin/main
