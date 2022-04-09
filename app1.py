@@ -151,6 +151,86 @@ if st.button('Getir'):
     st_echarts(options=options1, height="500px")
 
 
+cards1 = cards[cards['season'] == choose_season]
+cards1['card'] = cards1['card'].str.split(r'\d+', n=1, expand=True)
+
+cards_total1 = cards1.groupby(['card']).size().reset_index(name='total cards').sort_values(by='total cards', ascending=False)
+
+lst_player = cards_total1['card'].iloc[:10].values.tolist()
+lst_total_cards = cards_total1['total_cards'].iloc[:10].values.tolist()
+
+lst_player = pd.Series(lst_player, index=lst_total_cards)
+lst_player = lst_player.reset_index()
+
+pie_data1 = []
+
+for i in range(0, len(lst_player)):
+    pie_data1.append({'value': lst_player[lst_player.columns[0]].values.tolist()[i], 'name': lst_player[lst_player.columns[1]].values.tolist()[i]})
+
+option = {
+  "backgroundColor": "#2c343c",
+  "title": {
+    "text": "Customized Pie",
+    "left": "center",
+    "top": 20,
+    "textStyle": {
+      "color": "#ccc"
+    }
+  },
+  "tooltip": {
+    "trigger": "item"
+  },
+  "visualMap": {
+    "show": "false",
+    "min": 0,
+    "max": 100,
+    "inRange": {
+      "colorLightness": [
+        0,
+        1
+      ]
+    }
+  },
+  "series": [
+    {
+      "name": "",
+      "type": "pie",
+      "radius": "55%",
+      "center": [
+        "50%",
+        "50%"
+      ],
+      "data": pie_data1,
+      "roseType": "radius",
+      "label": {
+        "color": "rgba(255, 255, 255, 0.3)"
+      },
+      "labelLine": {
+        "lineStyle": {
+          "color": "rgba(255, 255, 255, 0.3)"
+        },
+        "smooth": 0.2,
+        "length": 10,
+        "length2": 20
+      },
+      "itemStyle": {
+        "color": "#c23531",
+        "shadowBlur": 200,
+        "shadowColor": "rgba(0, 0, 0, 0.5)"
+      },
+      "animationType": "scale",
+      "animationEasing": "elasticOut"
+    }
+  ]
+}
+
+st_echarts(
+    options=option, height="600px",
+)
+
+
+
+
 #Pie Chart Olusturma
 
 pie_data = []
