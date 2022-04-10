@@ -150,6 +150,8 @@ options1 = {
 if st.button('Getir'):
     st_echarts(options=options1, height="500px")
 
+# EN ÇOK KART ALAN OYUNCULAR PIE CHART
+#--------------------------------------------------------------------------
 
 cards1 = cards[cards['season'] == choose_season]
 cards1['card'] = cards1['card'].str.split(r'\d+', n=1, expand=True)
@@ -166,6 +168,16 @@ pie_data1 = []
 
 for i in range(0, len(lst_player)):
     pie_data1.append({'value': lst_player[lst_player.columns[0]].values.tolist()[i], 'name': lst_player[lst_player.columns[1]].values.tolist()[i]})
+
+for i in range(len(lst_player)):
+
+  index_player = (cards1.card.values == lst_player[i]).argmax()
+
+  if cards1['variable'].iloc[index_player][0] == 'h':
+    lst_player[i] = lst_player[i] + '(' + cards1['home'].iloc[index_player] + ')'
+    
+  elif cards1['variable'].iloc[index_player][0] == 'a':
+    lst_player[i] = lst_player[i] + '(' + cards1['away'].iloc[index_player] + ')'
 
 option = {
   "backgroundColor": "#2c343c",
