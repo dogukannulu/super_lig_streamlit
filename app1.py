@@ -161,13 +161,6 @@ cards_total1 = cards1.groupby(['card']).size().reset_index(name='total cards').s
 lst_player = cards_total1['card'].iloc[:10].values.tolist()
 lst_total_cards = cards_total1['total_cards'].iloc[:10].values.tolist()
 
-lst_player = pd.Series(lst_player, index=lst_total_cards)
-lst_player = lst_player.reset_index()
-
-pie_data1 = []
-
-for i in range(0, len(lst_player)):
-    pie_data1.append({'value': lst_player[lst_player.columns[0]].values.tolist()[i], 'name': lst_player[lst_player.columns[1]].values.tolist()[i]})
 
 for i in range(len(lst_player)):
 
@@ -175,9 +168,17 @@ for i in range(len(lst_player)):
 
   if cards1['variable'].iloc[index_player][0] == 'h':
     lst_player[i] = lst_player[i] + '(' + cards1['home'].iloc[index_player] + ')'
-    
+
   elif cards1['variable'].iloc[index_player][0] == 'a':
     lst_player[i] = lst_player[i] + '(' + cards1['away'].iloc[index_player] + ')'
+
+lst_player = pd.Series(lst_player, index=lst_total_cards)
+lst_player = lst_player.reset_index()
+
+pie_data1 = []
+
+for i in range(0, len(lst_player)):
+    pie_data1.append({'value': lst_player[lst_player.columns[0]].values.tolist()[i], 'name': lst_player[lst_player.columns[1]].values.tolist()[i]})
 
 option = {
   "backgroundColor": "#2c343c",
